@@ -1,66 +1,92 @@
 import './css/styles.css';
 import debounce from 'lodash.debounce';
+import { fetchCountries } from './fetchCountries';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 const DEBOUNCE_DELAY = 300;
 
-const inputEl = document.querySelector("input#search-box");
-inputEl.addEventListener("input", debounce((event) => {
-  const nameCountry = event.target.value;
-  console.log(nameCountry);
-  fetchCountries(nameCountry);
-}), DEBOUNCE_DELAY);
-
-
-
-// https://restcountries.com/v3.1/name/{name}
-// https://restcountries.com/v3.1/name/eesti
-// https://restcountries.com/v3.1/name/deutschland
-
-function fetchCountries(name) {
-  return fetch("https://restcountries.com/v3.1/name/{name}").then(
-    (response) => {
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
-      return response.json();
-    }
-  );
+const refs = {
+  inputEl: document.querySelector("input#search-box"),
+  countryListEl: document.querySelector(".country-list"),
+  countryInfoEl: document.querySelector(".country-info")
 }
 
-// const fetchUsersBtn = document.querySelector(".btn");
-// const userList = document.querySelector(".user-list");
+refs.inputEl.addEventListener("input", debounce(treatmentInput, DEBOUNCE_DELAY));
 
-// fetchUsersBtn.addEventListener("click", () => {
-//   fetchUsers()
-//       .then((users) => {
-//           console.log("users", users);
-//           renderUserList(users)
-//       })
-//     .catch((error) => console.log(error));
-// });
+//!=========== All functions for clear build elements ========================
 
-// function fetchUsers() {
-//   return fetch("https://jsonplaceholder.typicode.com/users").then(
-//     (response) => {
-//       if (!response.ok) {
-//         throw new Error(response.status);
-//       }
-//       return response.json();
-//     }
-//   );
-// }
+const clearBuildElements = (ref) => (ref.innerHTML = "");
 
-// function renderUserList(users) {
-//   const markup = users
-//     .map((user) => {
-//       return `<li>
-//           <p><b>Name</b>: ${user.name}</p>
-//           <p><b>Email</b>: ${user.email}</p>
-//           <p><b>Company</b>: ${user.company.name}</p>
-//           <p><b>Company catchPhrase </b>: ${user.company.catchPhrase}</p>
-//           <p><b>Phone</b>: ${user.phone}</p>
-//         </li>`;
-//     })
-//     .join("");
-//   userList.innerHTML = markup;
-// }
+function clearAllElements() {
+  clearBuildElements(refs.countryListEl);
+  clearBuildElements(refs.countryInfoEl);
+};
+
+//!========================== Main function ==================================
+
+function treatmentInput(event) {
+  const inputUser = event.target.value.trim();
+  console.log("inputUser:", inputUser);
+
+
+  if (!inputUser) {
+    clearAllElements();
+    return;
+}
+
+  fetchCountries(inputUser)
+    .then(data => {
+      console.log('data', data)
+      if (data.length > 10) {
+        Notify.info('Too many matches found. Please enter a more specific name');
+        return;
+      }
+      render(data)
+    })
+    .catch(err => {
+      clearAllElements();
+      Notify.failure('Oops, there is no country with that name');
+  })
+};
+
+// !====================== Function for render ==================================
+
+function render(data) {
+  if (data.length === 1) {
+    clearBuildElements(refs.countryListEl);
+    const markupInfoOneCountry = createOneCountry(data);
+    refs.countryInfoEl.innerHTML = markupInfoOneCountry;
+  } else {
+    clearBuildElements(refs.countryInfoEl);
+    const markupInfoManyCountry = createManyCountry(data);
+    refs.countryListEl.innerHTML = markupInfoManyCountry;
+
+  }
+};
+
+// !====================== Function for render 1 country =======================
+
+function createOneCountry(data) {
+  return data.map(
+    ({ name, capital, population, flags, languages }) =>
+      `<img src="${flags.png}" alt="${name.official}" width="200" height="100">
+      <h1>${name.official}</h1>
+      <p>Capital: ${capital}</p>
+      <p>Population: ${population}</p>
+      <p>Languages: ${Object.values(languages)}</p>`
+  );
+};
+
+// !====================== Function for render 2-9 countries =======================
+
+function createManyCountry(data) {
+  return data
+    .map(
+      ({ name, flags }) =>
+        `<li><img src="${flags.png}" alt="${name.official}" width="60" height="40">${name.official}</li>`
+    )
+  .join('');
+
+};
+
+
