@@ -12,6 +12,7 @@ const refs = {
 }
 
 refs.inputEl.addEventListener("input", debounce(treatmentInput, DEBOUNCE_DELAY));
+refs.inputEl.addEventListener("mouseover", () => Notify.info('Please enter few letters from the name of the country you are looking for (if field is empty) or erase field'));
 
 //!=========== All functions for clear build elements ========================
 
@@ -69,7 +70,7 @@ function render(data) {
 function createOneCountry(data) {
   return data.map(
     ({ name, capital, population, flags, languages }) =>
-      `<img src="${flags.png}" alt="${name.official}" width="200" height="100">
+      `<img src="${flags.png}" alt="${name.official}" width="200" height="100" >
       <h1>${name.official}</h1>
       <p>Capital: ${capital}</p>
       <p>Population: ${population}</p>
@@ -83,7 +84,7 @@ function createManyCountry(data) {
   return data
     .map(
       ({ name, flags }) =>
-        `<li><img src="${flags.png}" alt="${name.official}" width="60" height="40">${name.official}</li>`
+        `<li><img src="${flags.png}" alt="${name.official}" width="80" height="60">${name.official}</li>`
     )
   .join('');
 
