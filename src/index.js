@@ -4,6 +4,7 @@ import { fetchCountries } from './fetchCountries';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 const DEBOUNCE_DELAY = 300;
+const DEBOUNCE_DELAY_NOTE_USER = 700;
 
 const refs = {
   inputEl: document.querySelector("input#search-box"),
@@ -12,7 +13,7 @@ const refs = {
 }
 
 refs.inputEl.addEventListener("input", debounce(treatmentInput, DEBOUNCE_DELAY));
-refs.inputEl.addEventListener("mouseover", () => Notify.info('Please enter few letters from the name of the country you are looking for (if field is empty) or erase field'));
+refs.inputEl.addEventListener("mouseover", debounce(noteUsers, DEBOUNCE_DELAY_NOTE_USER));
 
 //!=========== All functions for clear build elements ========================
 
@@ -46,7 +47,9 @@ function treatmentInput(event) {
     })
     .catch(err => {
       clearAllElements();
-      Notify.failure('Oops, there is no country with that name');
+      if (err.message === "404") {
+        Notify.failure('Oops, there is no country with that name')
+      }
   })
 };
 
@@ -90,4 +93,9 @@ function createManyCountry(data) {
 
 };
 
+function noteUsers(event) {
 
+  if (event.target.value === "") {
+    Notify.info('Please enter few letters from the name of the country you are looking for (if field is empty) or erase field')
+  }
+}
