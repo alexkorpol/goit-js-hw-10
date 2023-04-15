@@ -4,7 +4,7 @@ import { fetchCountries } from './fetchCountries';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 const DEBOUNCE_DELAY = 300;
-const DEBOUNCE_DELAY_NOTE_USER = 700;
+const DEBOUNCE_DELAY_NOTE_USER = 500;
 
 const refs = {
   inputEl: document.querySelector("input#search-box"),
@@ -40,6 +40,7 @@ function treatmentInput(event) {
     .then(data => {
       console.log('data', data)
       if (data.length > 10) {
+        clearAllElements();
         Notify.info('Too many matches found. Please enter a more specific name');
         return;
       }
@@ -49,7 +50,8 @@ function treatmentInput(event) {
       clearAllElements();
       if (err.message === "404") {
         Notify.failure('Oops, there is no country with that name')
-      }
+      };
+      console.log("ERROR ==>>", err.message,"<<== page no found");
   })
 };
 
@@ -92,10 +94,11 @@ function createManyCountry(data) {
   .join('');
 
 };
+// !==================== Function - message what user can do ======================
 
 function noteUsers(event) {
-
+  console.log("event.target.value ===>>>>", event.target.value);
   if (event.target.value === "") {
-    Notify.info('Please enter few letters from the name of the country you are looking for (if field is empty) or erase field')
+    Notify.info('Please enter few letters from the name of the country you are looking for')
   }
 }
